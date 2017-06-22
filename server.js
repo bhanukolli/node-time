@@ -1,17 +1,40 @@
 const http = require('http');
+      fs = require('fs');
 
-function process_request(req, res) {
+function load_album_list (callback){
+  fs.readdir("albums", (err, files) => {
+    if (err) {
+      callback(err);
+    }else {
+      callback(null, files);
+
+    }
+  })
+}
+function handle_incomming_request(req, res) {
   console.log("INcomming requet" + req.method + "" +req.url);
   var body = 'Thanks ! \n';
   var content_length = body.lenght;
-  res.writeHead(200, {
-    //'Content_Length' : content_length,
-    'Content-Type' : 'text/json',
-  });
 
-  res.end(JSON.stringify({error: null data: {} }));
+  load_album_list((err, albums) => {
+    if (err) {
+      res.writeHead(500, {'Content-Type' : 'application/json',});
+      res.end(JSON.stringify({code: "Cant load albums" ,
+                              message: err.message }));
+
+    }else {
+      var output = { error: null, data: {albums: albums}};
+      res.writeHead(200, {'Content-Type' : 'application/json',});
+      res.end(JSON.stringify({output}) + "\n");
+    }
+  })
+    //res.writeHead(200, {
+    //'Content_Length' : content_length,
+    //    'Content-Type' : 'application/json',
+    //  });
+    //res.end(JSON.stringify({error: null ,data: {} }));
 }
 
-var s = http.createServer(process_request);
+var s = http.createServer(handle_incomming_request);
 
 s.listen(8080);
