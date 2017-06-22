@@ -6,8 +6,22 @@ function load_album_list (callback){
     if (err) {
       callback(err);
     }else {
-      callback(null, files);
+      var only_dirs = [];
 
+      var iterator = (index) => {
+        if (index == files.length) {
+          callback(null, only_dirs);
+          return;
+        }
+        fs.stat("albums/" + files[index], (err, stats) => {
+          if (stats.isDirectory()) {
+            only_dirs.push(files[index]);
+          }
+          iterator(index + 1);
+        });
+
+      };
+      iterator(0);
     }
   })
 }
